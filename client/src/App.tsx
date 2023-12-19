@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
@@ -6,6 +6,10 @@ function App() {
   const [content, setContent] = useState("");
   const [fileName, setfileName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [attachment, setAttachment] = useState<any>();
+
+  const inputRef = useRef(null);
+
   const [savedSuccessfully, setSavedSuccessfully] = useState<boolean>();
 
   const [filesList, setFilesList] = useState(null);
@@ -41,18 +45,32 @@ function App() {
   }, []);
 
   const fetchFile = async (fileName: string) => {
-    const response = await fetch(`http://localhost:3000/getDoc${fileName}`, {
+    const response = await fetch(`http://localhost:3000/getDoc/${fileName}`, {
       method: "get",
     });
     const data = await response.json();
     setContent(data.content);
   };
 
+  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const files = Array.from(e.target.files);
+    const formData = new FormData();
+    formData.append("attatchment", files[0]);
+    formData.append("docName", fileName);
+    setAttachment(formData);
+  };
+
+  const handleSetAttachment = async () => {
+    const response = await fetch(`http://localhost:3000/upload`, {
+      method: "post",
+      body: attachment,
+    });
+    const data = await response.json();
+  };
+
   return (
     <>
       <select
-        name="pets"
-        id="pet-select"
         onInput={(e) => {
           const fileName = e.target.value;
           fetchFile(fileName);
@@ -62,10 +80,13 @@ function App() {
         <option value="">please choose a file</option>
         {filesList &&
           filesList.map((item) => {
-            return <option value={item}>{item}</option>;
+            return (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            );
           })}
       </select>
-
       <input
         value={fileName}
         onInput={(e) => setfileName(e.target.value)}
@@ -76,6 +97,20 @@ function App() {
       {isLoading && "waiting for the server to respond..."}
       {savedSuccessfully && "saved successfully!"}
       <ReactQuill theme="snow" value={content} onChange={setContent} />
+      attachmens:{" "}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpg"
+        onChange={handleFileSelected}
+      />
+      <button
+        onClick={() => {
+          handleSetAttachment();
+        }}
+      >
+        upload attachment
+      </button>
     </>
   );
 }
