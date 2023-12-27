@@ -3,6 +3,7 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
 function App() {
+  //define all states
   const [content, setContent] = useState("");
   const [fileName, setfileName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -11,6 +12,7 @@ function App() {
 
   const [filesList, setFilesList] = useState(null);
 
+  //handler for writing files
   const handleWrite = async () => {
     setIsLoading(true);
     const response = await fetch("http://localhost:3000/writeDoc", {
@@ -30,10 +32,12 @@ function App() {
     fetchFiles();
   };
 
+  //funciton for fetching the list of files
   const fetchFiles = async () => {
     const response = await fetch("http://localhost:3000/getDocs", {
       method: "get",
     });
+    //parse the json
     const data = await response.json();
     setFilesList(data);
   };
@@ -41,10 +45,12 @@ function App() {
     fetchFiles();
   }, []);
 
+  //funciton for fetching a specific file
   const fetchFile = async (fileName: string) => {
     const response = await fetch(`http://localhost:3000/getDoc/${fileName}`, {
       method: "get",
     });
+    //parse the json
     const data = await response.json();
     setContent(data.content);
   };
